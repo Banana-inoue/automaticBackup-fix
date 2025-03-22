@@ -37,31 +37,29 @@ ERROR_LOG_FILE="$BACKUP_DIR/backup_error_$TIMESTAMP.log"
 
 
 # バックアップ開始ログ
-echo "Starting MySQL backup process..." >> "$LOG_FILE"
+echo "バックアップ開始" >> "$LOG_FILE"
 
 # バックアップディレクトリが存在しない場合に作成
 if [ ! -d "$BACKUP_DIR" ]; then
-  echo "Backup directory does not exist. Creating: $BACKUP_DIR" >> "$LOG_FILE"
+  echo "バックアップディレクトが存在しない為、作成します : $BACKUP_DIR" >> "$LOG_FILE"
   mkdir -p "$BACKUP_DIR"
 fi
-
-echo "Backup file will be created at: $BACKUP_FILE" >> "$LOG_FILE"
 
 # データベースのバックアップを取得し、エラーログに出力
 mysqldump -u $DB_USER -p$DB_PASSWORD $DB_NAME > "$BACKUP_FILE" 2>> "$ERROR_LOG_FILE"
 if [ $? -ne 0 ]; then
-  echo "MySQL backup failed! Check the log: $ERROR_LOG_FILE" >> "$LOG_FILE"
+  echo "バックアップが失敗しました ログをチェックしてください: $ERROR_LOG_FILE" >> "$LOG_FILE"
   exit 1
 fi
 
-echo "Backup successfully created: $BACKUP_FILE" >> "$LOG_FILE"
+echo "バックアップが成功しました : $BACKUP_FILE" >> "$LOG_FILE"
 
 # scpでリモートサーバーへ転送
 scp $BACKUP_FILE $REMOTE_USER@$REMOTE_HOST:$REMOTE_DIR >> "$LOG_FILE"
 if [ $? -ne 0 ]; then
-  echo "SCP transfer failed!: $ERROR_LOG_FILE" >> "$LOG_FILE"
+  echo "バックアップファイルの送信が失敗しました　ログを確認してください: $ERROR_LOG_FILE" >> "$LOG_FILE"
   exit 1
 fi
 
-echo "Backup successfully transferred to $REMOTE_HOST:$REMOTE_DIR" >> "$LOG_FILE"
-echo "Backup process completed successfully." >> "$LOG_FILE"
+echo "バックアップファイルの送信が完了しました $REMOTE_HOST:$REMOTE_DIR" >> "$LOG_FILE"
+echo "バックアップが完了しました" >> "$LOG_FILE"
