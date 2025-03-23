@@ -1,12 +1,14 @@
 #!/bin/bash
 
 #TODO:パスワードの管理を別ファイルにて行う
-#TODO:DBバックアップに失敗した場合、メールにて通知する
-#TODO:バックアップサーバーに送信が失敗した場合、メールにて通知する
+#TODO:各コマンドをフルパスに変更する(さくらインターネットの縛り)
 #TODO:ログファイルの日本語表示可能か確認する
+#TODO:mailコマンドが入っているか確認する(無理ならsmtp)
+
+# 通知を送信するメールアドレス
+EMAIL="hogehoge@banana.co.jp"  
 
 ## DB設定
-
 # MySQLユーザー名
 DB_USER="" 
 # MySQLパスワード
@@ -17,7 +19,6 @@ DB_NAME=""
 BACKUP_DIR="/path/to/backup" 
 
 ## バックアップサーバーの接続設定
-
 # バックアップサーバーのユーザー名
 REMOTE_USER=""
 # バックアップサーバーのホスト名またはIP
@@ -26,7 +27,6 @@ REMOTE_HOST="remote_host"
 REMOTE_DIR="/remote/backup/path"
 
 ## バックアップファイル、ログファイル設定
-
 # 日付
 TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
 # 日付を付けたバックアップファイルを作成
@@ -37,7 +37,7 @@ ERROR_LOG_FILE="$BACKUP_DIR/backup_error_$TIMESTAMP.log"
 
 
 # バックアップ開始ログ
-echo "バックアップ開始" >> "$LOG_FILE"
+echo "バックアップ処理開始" >> "$LOG_FILE"
 
 # バックアップディレクトリが存在しない場合に作成
 if [ ! -d "$BACKUP_DIR" ]; then
@@ -46,9 +46,11 @@ if [ ! -d "$BACKUP_DIR" ]; then
 fi
 
 # データベースのバックアップを取得し、エラーログに出力
+# 失敗した場合、メールで通知する
 mysqldump -u $DB_USER -p$DB_PASSWORD $DB_NAME > "$BACKUP_FILE" 2>> "$ERROR_LOG_FILE"
 if [ $? -ne 0 ]; then
-  echo "バックアップが失敗しました ログをチェックしてください: $ERROR_LOG_FILE" >> "$LOG_FILE"
+  echo "バックアップが失敗しました ログを確認してください: $ERROR_LOG_FILE" >> "$LOG_FILE"
+  mail -s "バックアップが失敗しました" "$EMAIL" < "$ERROR_LOG_FILE"
   exit 1
 fi
 
@@ -57,9 +59,13 @@ echo "バックアップが成功しました : $BACKUP_FILE" >> "$LOG_FILE"
 # scpでリモートサーバーへ転送
 scp $BACKUP_FILE $REMOTE_USER@$REMOTE_HOST:$REMOTE_DIR >> "$LOG_FILE"
 if [ $? -ne 0 ]; then
-  echo "バックアップファイルの送信が失敗しました　ログを確認してください: $ERROR_LOG_FILE" >> "$LOG_FILE"
+  echo "バックアップファイルの送信に失敗しました　ログを確認してください: $ERROR_LOG_FILE" >> "$LOG_FILE"
+  mail -s "バックアップファイルの送信に失敗しました" "$EMAIL" < "$ERROR_LOG_FILE"
   exit 1
 fi
 
 echo "バックアップファイルの送信が完了しました $REMOTE_HOST:$REMOTE_DIR" >> "$LOG_FILE"
 echo "バックアップが完了しました" >> "$LOG_FILE"
+
+# 成功通知をメールにて送信
+mail -s "バックアップが完了しました" "$EMAIL" < "$LOG_FILE"
