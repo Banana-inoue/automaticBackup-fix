@@ -1,20 +1,16 @@
 #!/bin/bash
 
-#TODO:パスワードの管理を別ファイルにて行う
 #TODO:各コマンドをフルパスに変更する(さくらインターネットの縛り)
 #TODO:ログファイルの日本語表示可能か確認する
-#TODO:mailコマンドが入っているか確認する(無理ならsmtp)
+#TODO:mailコマンドが入っているか確認する(無理ならsmtp、gmailAPI)
 
 # 通知を送信するメールアドレス
 EMAIL="hogehoge@banana.co.jp"  
 
 ## DB設定
-# MySQLユーザー名
-DB_USER="" 
-# MySQLパスワード
-DB_PASSWORD=""
-# バックアップするデータベース名
-DB_NAME=""  
+# DB認証ファイル
+DB_CONF="/etc/db.conf"
+
 # バックアップを保存するディレクトリ
 BACKUP_DIR="/path/to/backup" 
 
@@ -41,13 +37,14 @@ echo "バックアップ処理開始" >> "$LOG_FILE"
 
 # バックアップディレクトリが存在しない場合に作成
 if [ ! -d "$BACKUP_DIR" ]; then
-  echo "バックアップディレクトが存在しない為、作成します : $BACKUP_DIR" >> "$LOG_FILE"
+  echo "バックアップディレクトリが存在しない為、作成します : $BACKUP_DIR" >> "$LOG_FILE"
   mkdir -p "$BACKUP_DIR"
 fi
 
 # データベースのバックアップを取得し、エラーログに出力
 # 失敗した場合、メールで通知する
-mysqldump -u $DB_USER -p$DB_PASSWORD $DB_NAME > "$BACKUP_FILE" 2>> "$ERROR_LOG_FILE"
+# mysqldump -u $DB_USER -p$DB_PASSWORD $DB_NAME > "$BACKUP_FILE" 2>> "$ERROR_LOG_FILE"
+mysqldump --defaults-extra-file="$DB_CONF" --single-transaction -A > "$BACKUP_FILE" 2>> "$ERROR_LOG_FILE"
 if [ $? -ne 0 ]; then
   echo "バックアップが失敗しました ログを確認してください: $ERROR_LOG_FILE" >> "$LOG_FILE"
   mail -s "バックアップが失敗しました" "$EMAIL" < "$ERROR_LOG_FILE"
