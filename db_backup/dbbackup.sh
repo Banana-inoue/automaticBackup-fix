@@ -12,7 +12,7 @@ EMAIL="hogehoge@banana.co.jp"
 DB_CONF="/etc/db.conf"
 
 # バックアップを保存するディレクトリ
-BACKUP_DIR="/path/to/backup" 
+BACKUP_DIR="/backup/hoge" 
 
 ## バックアップサーバーの接続設定
 # バックアップサーバーのユーザー名
@@ -20,7 +20,7 @@ REMOTE_USER=""
 # バックアップサーバーのホスト名またはIP
 REMOTE_HOST="remote_host"
 # バックアップサーバーの保存先ディレクトリ
-REMOTE_DIR="/remote/backup/path"
+REMOTE_DIR="/backup/hoge"
 
 ## バックアップファイル、ログファイル設定
 # 日付
