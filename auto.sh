@@ -26,7 +26,7 @@ REMOTE_DIR="/remote/backup/path"
 # 日付
 TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
 # 日付を付けたバックアップファイルを作成
-BACKUP_FILE="$BACKUP_DIR/${DB_NAME}_backup_$TIMESTAMP.sql"
+BACKUP_FILE="$BACKUP_DIR/${DB_NAME}_backup_$TIMESTAMP.sql.gz"
 # 日付を付けたログファイルを作成
 LOG_FILE="$BACKUP_DIR/backup_log_$TIMESTAMP.log"
 ERROR_LOG_FILE="$BACKUP_DIR/backup_error_$TIMESTAMP.log"
@@ -41,10 +41,9 @@ if [ ! -d "$BACKUP_DIR" ]; then
   mkdir -p "$BACKUP_DIR"
 fi
 
-# データベースのバックアップを取得し、エラーログに出力
-# 失敗した場合、メールで通知する
-# mysqldump -u $DB_USER -p$DB_PASSWORD $DB_NAME > "$BACKUP_FILE" 2>> "$ERROR_LOG_FILE"
-mysqldump --defaults-extra-file="$DB_CONF" --single-transaction -A > "$BACKUP_FILE" 2>> "$ERROR_LOG_FILE"
+# データベースのバックアップを実施し、圧縮する
+# 失敗した場合、エラーログに出力し、メールで通知する
+mysqldump --defaults-extra-file="$DB_CONF" --single-transaction -A 2>> "$ERROR_LOG_FILE" | gzip > "$BACKUP_FILE"
 if [ $? -ne 0 ]; then
   echo "バックアップが失敗しました ログを確認してください: $ERROR_LOG_FILE" >> "$LOG_FILE"
   mail -s "バックアップが失敗しました" "$EMAIL" < "$ERROR_LOG_FILE"
