@@ -59,11 +59,14 @@ if [ $? -ne 0 ]; then
   mail -s "バックアップファイルの送信に失敗しました" "$EMAIL" < "$ERROR_LOG_FILE"
   exit 1
 fi
+echo "DBバックアップファイルの送信が完了しました $REMOTE_HOST:$REMOTE_DIR" >> "$LOG_FILE"
 
-echo "バックアップファイルの送信が完了しました $REMOTE_HOST:$REMOTE_DIR" >> "$LOG_FILE"
-echo "バックアップが完了しました" >> "$LOG_FILE"
+# DBバックアップファイルを削除する
+rm $BACKUP_FILE
+
+echo "DBバックアップが完了しました" >> "$LOG_FILE"
 
 # 成功通知をメールにて送信
-mail -s "バックアップが完了しました" "$EMAIL" < "$LOG_FILE"
+mail -s "DBバックアップが完了しました" "$EMAIL" < "$LOG_FILE"
 
 # TODO:最も古いバックファイルを削除する処理を記述

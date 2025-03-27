@@ -53,11 +53,12 @@ if [ $? -ne 0 ]; then
   exit 1
 fi
 
+# バックアップファイルを削除する
+rm $SYSTEM_BACKUP_FILE
+
 echo "ファイルのバックアップが成功しました: $SYSTEM_BACKUP_FILE" >> "$LOG_FILE"
 
 # 成功通知をメールで送信
 mail -s "ファイルバックアップが完了しました" "$EMAIL" < "$LOG_FILE"
 
-echo "バックアップ完了" >> "$LOG_FILE"
-
-# TODO:最も古いバックファイルを削除する処理を記述
+echo "ファイルバックアップ完了" >> "$LOG_FILE"
