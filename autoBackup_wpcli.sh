@@ -101,7 +101,7 @@ if [ $? -ne 0 ]; then
   exit 1
 fi
 
-rm $$SYSTEM_BACKUP_FILE
+rm $SYSTEM_BACKUP_FILE
 
 echo "フルバックアップが完了しました" >> "$LOG_FILE"
 
