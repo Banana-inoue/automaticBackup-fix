@@ -4,7 +4,7 @@
 
 
 # 通知を受信するメールアドレス
-EMAIL="@gmail.com"
+EMAIL="@gmail.com "
 
 ## DB設定
 # DB認証ファイル
